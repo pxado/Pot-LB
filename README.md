@@ -1,25 +1,32 @@
 # Fox Pvt. Ltd. Organization Suite
 
-Initial organization portal for Fox Pvt. Ltd., a home-automation company focused on robotics, connected devices, and AI-assisted environments.
+Organization portal for Fox Pvt. Ltd., a home-automation company focused on robotics, connected devices, and AI-assisted environments.
 
-## Included in this first release
+## Included
 
 - Public corporate landing page with an original fox mark and home-automation positioning.
 - Employee sign-in using Employee ID and password.
 - Employee portal with role-aware workspace sections.
 - Administrator console for employee creation, role assignment, activation/deactivation, and password reset.
 - Role-based access control and administrator audit logging.
-- SQLite persistence using Node's built-in `node:sqlite` API.
+- PostgreSQL persistence for employee accounts, password hashes, sessions, and audit events.
 - No seeded users and no hardcoded credentials.
 
 ## Requirements
 
 - Node.js 22.5 or newer.
+- PostgreSQL 14 or newer.
+
+## Environment
+
+Copy `.env.example` to `.env` for local development and set a valid PostgreSQL connection string in `DATABASE_URL`.
+
+The application creates its required tables and indexes automatically when it starts.
 
 ## Start locally
 
 ```bash
-cp .env.example .env
+npm install
 node --env-file=.env src/server.mjs
 ```
 
@@ -33,7 +40,17 @@ Populate the bootstrap values in your environment, then run:
 node --env-file=.env src/bootstrap-admin.mjs
 ```
 
-The bootstrap command refuses to create a second bootstrap administrator after an administrator already exists. Additional administrators can be created from the admin console.
+The bootstrap command refuses to create another bootstrap administrator after an active administrator exists. Additional administrators are managed from the admin console.
+
+## Railway deployment
+
+Production expects:
+
+- `HOST=0.0.0.0`
+- `NODE_ENV=production`
+- `DATABASE_URL` connected to the Railway PostgreSQL service.
+
+Railway supplies `PORT` automatically. The application exposes `/api/health` for health checks.
 
 ## Test
 
@@ -44,9 +61,7 @@ npm test
 ## Repository layout
 
 ```text
-public/                 Browser UI and SVG assets
-src/                    HTTP server, database, authentication, and RBAC
-test/                    Built-in Node test suite
+public/   Browser UI and SVG assets
+src/      HTTP server, PostgreSQL persistence, authentication, and RBAC
+test/     Node test suite
 ```
-
-Runtime data is stored under `data/` by default and is ignored by Git.

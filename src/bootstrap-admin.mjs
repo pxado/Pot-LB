@@ -12,12 +12,12 @@ if (!employeeId || !fullName || !department || !password) {
   process.exit(1);
 }
 
-const store = openDatabase(config.databasePath);
+const store = await openDatabase(config.databaseUrl);
 try {
-  if (store.countActiveAdmins() > 0) {
+  if (await store.countActiveAdmins() > 0) {
     throw new Error('An administrator already exists. Use the admin console to create additional administrators.');
   }
-  const admin = store.createEmployee({
+  const admin = await store.createEmployee({
     employeeId,
     fullName,
     department,
@@ -25,11 +25,11 @@ try {
     passwordHash: hashPassword(password),
     mustChangePassword: false
   });
-  store.addAudit({ action: 'bootstrap_admin_created', targetEmployeePk: admin.id, details: { employeeId: admin.employee_id } });
+  await store.addAudit({ action: 'bootstrap_admin_created', targetEmployeePk: admin.id, details: { employeeId: admin.employee_id } });
   console.log(`Administrator created for employee ID ${admin.employee_id}.`);
 } catch (error) {
   console.error(error.message);
   process.exitCode = 1;
 } finally {
-  store.close();
+  await store.close();
 }

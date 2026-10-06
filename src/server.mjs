@@ -20,10 +20,16 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, '../public');
-const store = openDatabase(config.databasePath);
+const store = await openDatabase(config.databaseUrl);
 const dummyPasswordHash = hashPassword(randomBytes(24).toString('base64url'));
 
-setInterval(() => store.purgeExpiredSessions(), 15 * 60 * 1000).unref();
+setInterval(async () => {
+  try {
+    await store.purgeExpiredSessions();
+  } catch (error) {
+    console.error('Failed to purge expired sessions:', error.message);
+  }
+}, 15 * 60 * 1000).unref();
 
 function publicEmployee(row) {
   return {
@@ -40,22 +46,22 @@ function publicEmployee(row) {
   };
 }
 
-function currentSession(req) {
+async function currentSession(req) {
   const cookies = parseCookies(req.headers.cookie);
   const token = cookies[config.cookieName];
   if (!token) return null;
-  const session = store.getSession(token);
+  const session = await store.getSession(token);
   return session ? { ...session, token } : null;
 }
 
-function requireAuth(req) {
-  const session = currentSession(req);
+async function requireAuth(req) {
+  const session = await currentSession(req);
   if (!session) throw Object.assign(new Error('Authentication required'), { status: 401 });
   return session;
 }
 
-function requireAdmin(req) {
-  const session = requireAuth(req);
+async function requireAdmin(req) {
+  const session = await requireAuth(req);
   if (!hasPermission(session.role, '*')) throw Object.assign(new Error('Administrator access required'), { status: 403 });
   if (session.must_change_password) throw Object.assign(new Error('Change your password before using administrative functions'), { status: 403 });
   return session;
@@ -92,7 +98,7 @@ async function handleApi(req, res, url) {
     const password = String(body.password ?? '');
     let employee = null;
     try {
-      employee = store.getEmployeeWithPassword(employeeId);
+      employee = await store.getEmployeeWithPassword(employeeId);
     } catch {
       employee = null;
     }
@@ -100,19 +106,19 @@ async function handleApi(req, res, url) {
     if (!employee || !employee.active || !passwordOk) {
       return json(res, 401, { error: 'Invalid employee ID or password' });
     }
-    store.deleteSessionsForEmployee(employee.id);
-    const session = store.createSession(employee.id, config.sessionTtlMs);
-    store.markLogin(employee.id);
-    store.addAudit({ actorEmployeePk: employee.id, action: 'login', targetEmployeePk: employee.id });
+    await store.deleteSessionsForEmployee(employee.id);
+    const session = await store.createSession(employee.id, config.sessionTtlMs);
+    await store.markLogin(employee.id);
+    await store.addAudit({ actorEmployeePk: employee.id, action: 'login', targetEmployeePk: employee.id });
     setSessionCookie(res, config.cookieName, session.token, config.sessionTtlMs, config.production);
     return json(res, 200, {
-      user: publicEmployee(store.getEmployeeByPk(employee.id)),
+      user: publicEmployee(await store.getEmployeeByPk(employee.id)),
       csrfToken: session.csrfToken
     });
   }
 
   if (req.method === 'GET' && pathname === '/api/session') {
-    const session = requireAuth(req);
+    const session = await requireAuth(req);
     return json(res, 200, {
       user: publicEmployee(session),
       csrfToken: session.csrf_token
@@ -121,32 +127,32 @@ async function handleApi(req, res, url) {
 
   if (req.method === 'POST' && pathname === '/api/auth/logout') {
     requireSameOrigin(req);
-    const session = requireAuth(req);
+    const session = await requireAuth(req);
     requireCsrf(req, session);
-    store.deleteSession(session.token);
+    await store.deleteSession(session.token);
     clearSessionCookie(res, config.cookieName, config.production);
     return json(res, 200, { ok: true });
   }
 
   if (req.method === 'POST' && pathname === '/api/auth/change-password') {
     requireSameOrigin(req);
-    const session = requireAuth(req);
+    const session = await requireAuth(req);
     requireCsrf(req, session);
     const body = await readJson(req, config.maxJsonBytes);
-    const employee = store.getEmployeeWithPassword(session.employee_id);
+    const employee = await store.getEmployeeWithPassword(session.employee_id);
     if (!verifyPassword(String(body.currentPassword ?? ''), employee.password_hash)) {
       return json(res, 400, { error: 'Current password is incorrect' });
     }
     const nextHash = hashPassword(String(body.newPassword ?? ''));
-    store.setPassword(session.id, nextHash, false);
-    store.deleteSessionsForEmployee(session.id);
-    store.addAudit({ actorEmployeePk: session.id, action: 'password_changed', targetEmployeePk: session.id });
+    await store.setPassword(session.id, nextHash, false);
+    await store.deleteSessionsForEmployee(session.id);
+    await store.addAudit({ actorEmployeePk: session.id, action: 'password_changed', targetEmployeePk: session.id });
     clearSessionCookie(res, config.cookieName, config.production);
     return json(res, 200, { ok: true, reauthenticate: true });
   }
 
   if (req.method === 'GET' && pathname === '/api/dashboard') {
-    const session = requireAuth(req);
+    const session = await requireAuth(req);
     const roleModules = modulesForRole(session.role);
     const moduleCopy = {
       overview: { title: 'My Workspace', description: 'Profile, shift context, and organization access.' },
@@ -165,29 +171,30 @@ async function handleApi(req, res, url) {
   }
 
   if (req.method === 'GET' && pathname === '/api/admin/overview') {
-    requireAdmin(req);
+    await requireAdmin(req);
+    const [employees, activeEmployees, departments, activeAdministrators] = await Promise.all([
+      store.countEmployees(),
+      store.countActiveEmployees(),
+      store.countDepartments(),
+      store.countActiveAdmins()
+    ]);
     return json(res, 200, {
-      totals: {
-        employees: store.countEmployees(),
-        activeEmployees: store.countActiveEmployees(),
-        departments: store.countDepartments(),
-        activeAdministrators: store.countActiveAdmins()
-      }
+      totals: { employees, activeEmployees, departments, activeAdministrators }
     });
   }
 
   if (req.method === 'GET' && pathname === '/api/admin/employees') {
-    requireAdmin(req);
-    return json(res, 200, { employees: store.listEmployees().map(publicEmployee) });
+    await requireAdmin(req);
+    return json(res, 200, { employees: (await store.listEmployees()).map(publicEmployee) });
   }
 
   if (req.method === 'POST' && pathname === '/api/admin/employees') {
     requireSameOrigin(req);
-    const session = requireAdmin(req);
+    const session = await requireAdmin(req);
     requireCsrf(req, session);
     const body = await readJson(req, config.maxJsonBytes);
     if (!roleExists(body.role)) return json(res, 400, { error: 'Invalid role' });
-    const created = store.createEmployee({
+    const created = await store.createEmployee({
       employeeId: body.employeeId,
       fullName: body.fullName,
       department: body.department,
@@ -195,7 +202,7 @@ async function handleApi(req, res, url) {
       passwordHash: hashPassword(String(body.password ?? '')),
       mustChangePassword: true
     });
-    store.addAudit({
+    await store.addAudit({
       actorEmployeePk: session.id,
       action: 'employee_created',
       targetEmployeePk: created.id,
@@ -207,24 +214,24 @@ async function handleApi(req, res, url) {
   const employeeEdit = routeMatch(pathname, /^\/api\/admin\/employees\/(\d+)$/);
   if (employeeEdit && req.method === 'PATCH') {
     requireSameOrigin(req);
-    const session = requireAdmin(req);
+    const session = await requireAdmin(req);
     requireCsrf(req, session);
     const targetId = Number(employeeEdit[0]);
-    const target = store.getEmployeeByPk(targetId);
+    const target = await store.getEmployeeByPk(targetId);
     if (!target) return json(res, 404, { error: 'Employee not found' });
     const body = await readJson(req, config.maxJsonBytes);
 
     if (targetId === Number(session.id) && (body.active === false || (body.role && body.role !== 'administrator'))) {
       return json(res, 400, { error: 'You cannot deactivate or remove your own administrator role' });
     }
-    if (target.role === 'administrator' && (body.active === false || (body.role && body.role !== 'administrator')) && store.countActiveAdmins() <= 1) {
+    if (target.role === 'administrator' && (body.active === false || (body.role && body.role !== 'administrator')) && await store.countActiveAdmins() <= 1) {
       return json(res, 400, { error: 'At least one active administrator is required' });
     }
     if (body.role !== undefined && !roleExists(body.role)) return json(res, 400, { error: 'Invalid role' });
 
-    const updated = store.updateEmployee(targetId, body);
-    if (body.active === false) store.deleteSessionsForEmployee(targetId);
-    store.addAudit({
+    const updated = await store.updateEmployee(targetId, body);
+    if (body.active === false) await store.deleteSessionsForEmployee(targetId);
+    await store.addAudit({
       actorEmployeePk: session.id,
       action: 'employee_updated',
       targetEmployeePk: targetId,
@@ -240,16 +247,16 @@ async function handleApi(req, res, url) {
   const resetPassword = routeMatch(pathname, /^\/api\/admin\/employees\/(\d+)\/reset-password$/);
   if (resetPassword && req.method === 'POST') {
     requireSameOrigin(req);
-    const session = requireAdmin(req);
+    const session = await requireAdmin(req);
     requireCsrf(req, session);
     const targetId = Number(resetPassword[0]);
     if (targetId === Number(session.id)) return json(res, 400, { error: 'Use Change Password for your own account' });
-    const target = store.getEmployeeByPk(targetId);
+    const target = await store.getEmployeeByPk(targetId);
     if (!target) return json(res, 404, { error: 'Employee not found' });
     const body = await readJson(req, config.maxJsonBytes);
-    store.setPassword(targetId, hashPassword(String(body.password ?? '')), true);
-    store.deleteSessionsForEmployee(targetId);
-    store.addAudit({
+    await store.setPassword(targetId, hashPassword(String(body.password ?? '')), true);
+    await store.deleteSessionsForEmployee(targetId);
+    await store.addAudit({
       actorEmployeePk: session.id,
       action: 'password_reset',
       targetEmployeePk: targetId,
@@ -259,8 +266,8 @@ async function handleApi(req, res, url) {
   }
 
   if (req.method === 'GET' && pathname === '/api/admin/audit') {
-    requireAdmin(req);
-    return json(res, 200, { events: store.listAudit(url.searchParams.get('limit') ?? 30) });
+    await requireAdmin(req);
+    return json(res, 200, { events: await store.listAudit(url.searchParams.get('limit') ?? 30) });
   }
 
   return json(res, 404, { error: 'API route not found' });
@@ -277,7 +284,7 @@ const server = http.createServer(async (req, res) => {
     const served = await serveStatic(res, publicDir, url.pathname);
     if (!served) return text(res, 404, 'Not found');
   } catch (error) {
-    const duplicateEmployee = error.code === 'ERR_SQLITE_ERROR' && /UNIQUE constraint failed: employees\.employee_id/.test(error.message);
+    const duplicateEmployee = error.code === '23505';
     const status = Number(error.status) || (duplicateEmployee ? 409 : 500);
     const message = duplicateEmployee ? 'Employee ID already exists' : (status >= 500 ? 'Internal server error' : error.message);
     if (status >= 500) console.error(error);
@@ -295,8 +302,8 @@ server.listen(config.port, config.host, () => {
 });
 
 function shutdown() {
-  server.close(() => {
-    store.close();
+  server.close(async () => {
+    await store.close();
     process.exit(0);
   });
   setTimeout(() => process.exit(1), 10_000).unref();
