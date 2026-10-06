@@ -111,7 +111,7 @@ function createStore(pool) {
 
     async listDirectory() {
       const { rows } = await pool.query(`
-        SELECT employee_id, full_name, department, role
+        SELECT full_name, department, role
         FROM employees
         WHERE active = TRUE
         ORDER BY full_name, employee_id
