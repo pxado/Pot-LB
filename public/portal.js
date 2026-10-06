@@ -87,7 +87,7 @@
   function renderDirectory(filter = '') {
     const needle = filter.trim().toLowerCase();
     const visible = directory.filter((employee) => {
-      const values = [employee.employeeId, employee.fullName, employee.role, employee.department].filter(Boolean);
+      const values = [employee.fullName, employee.role, employee.department].filter(Boolean);
       return !needle || values.some((value) => String(value).toLowerCase().includes(needle));
     });
 
@@ -95,7 +95,7 @@
     if (!visible.length) {
       const empty = document.createElement('div');
       empty.className = 'empty-state directory-empty';
-      empty.innerHTML = '<strong>No matching employees.</strong><span>Try a different name, role, department, or Employee ID.</span>';
+      empty.innerHTML = '<strong>No matching employees.</strong><span>Try a different name, role, or department.</span>';
       grid.replaceChildren(empty);
       return;
     }
@@ -120,8 +120,8 @@
       role.textContent = Fox.formatRole(employee.role);
       const meta = document.createElement('small');
       meta.textContent = employee.role === 'administrator' || !employee.department
-        ? employee.employeeId
-        : `${employee.department} · ${employee.employeeId}`;
+        ? 'Organization-wide'
+        : employee.department;
       info.append(name, role, meta);
       card.append(avatar, info);
       return card;
