@@ -1,16 +1,26 @@
-# Fox Pvt. Ltd. Organization Suite
+# Fox Workplace
 
-Organization portal for Fox Pvt. Ltd., a home-automation company focused on robotics, connected devices, and AI-assisted environments.
+Internal employee management and organization portal for Fox Pvt. Ltd.
 
-## Included
+Fox Workplace is designed as an internal system rather than a public company website. Employees sign in with organization-issued credentials and receive role-based access to self-service and work areas.
 
-- Public corporate landing page with an original fox mark and home-automation positioning.
-- Employee sign-in using Employee ID and password.
-- Employee portal with role-aware workspace sections.
+## Current scope
+
+- Internal Workplace gateway and employee sign-in.
+- Employee profile and role-based home.
+- Authenticated people directory.
+- Self-service areas for requests, attendance/leave, documents, and organization resources.
+- Role workspaces for management, operations, robotics, quality, and support.
 - Administrator console for employee creation, role assignment, activation/deactivation, and password reset.
-- Role-based access control and administrator audit logging.
+- Department-less organization-level administrator accounts.
 - PostgreSQL persistence for employee accounts, password hashes, sessions, and audit events.
 - No seeded users and no hardcoded credentials.
+
+## Access model
+
+Administrators are organization-level accounts and are not assigned to a department.
+
+Non-administrator employees require a department and receive Workplace services according to their assigned role.
 
 ## Requirements
 
@@ -21,7 +31,7 @@ Organization portal for Fox Pvt. Ltd., a home-automation company focused on robo
 
 Copy `.env.example` to `.env` for local development and set a valid PostgreSQL connection string in `DATABASE_URL`.
 
-The application creates its required tables and indexes automatically when it starts.
+The application creates and migrates its required tables and indexes automatically when it starts.
 
 ## Start locally
 
@@ -32,15 +42,23 @@ node --env-file=.env src/server.mjs
 
 Open `http://127.0.0.1:3000` unless you changed `HOST` or `PORT`.
 
-## Create the first administrator
+## First administrator
 
-Populate the bootstrap values in your environment, then run:
+Set:
+
+```text
+FOX_BOOTSTRAP_EMPLOYEE_ID
+FOX_BOOTSTRAP_NAME
+FOX_BOOTSTRAP_PASSWORD
+```
+
+Then run:
 
 ```bash
 node --env-file=.env src/bootstrap-admin.mjs
 ```
 
-The bootstrap command refuses to create another bootstrap administrator after an active administrator exists. Additional administrators are managed from the admin console.
+In production the server can also create the first administrator from the same environment variables when no active administrator exists. Administrator accounts are created without a department.
 
 ## Railway deployment
 
@@ -48,7 +66,7 @@ Production expects:
 
 - `HOST=0.0.0.0`
 - `NODE_ENV=production`
-- `DATABASE_URL` connected to the Railway PostgreSQL service.
+- `DATABASE_URL` referencing the Railway PostgreSQL service.
 
 Railway supplies `PORT` automatically. The application exposes `/api/health` for health checks.
 
@@ -61,7 +79,7 @@ npm test
 ## Repository layout
 
 ```text
-public/   Browser UI and SVG assets
+public/   Workplace UI and Fox brand asset
 src/      HTTP server, PostgreSQL persistence, authentication, and RBAC
 test/     Node test suite
 ```
