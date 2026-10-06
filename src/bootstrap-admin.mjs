@@ -4,11 +4,10 @@ import { hashPassword } from './password.mjs';
 
 const employeeId = process.env.FOX_BOOTSTRAP_EMPLOYEE_ID;
 const fullName = process.env.FOX_BOOTSTRAP_NAME;
-const department = process.env.FOX_BOOTSTRAP_DEPARTMENT;
 const password = process.env.FOX_BOOTSTRAP_PASSWORD;
 
-if (!employeeId || !fullName || !department || !password) {
-  console.error('Set FOX_BOOTSTRAP_EMPLOYEE_ID, FOX_BOOTSTRAP_NAME, FOX_BOOTSTRAP_DEPARTMENT, and FOX_BOOTSTRAP_PASSWORD.');
+if (!employeeId || !fullName || !password) {
+  console.error('Set FOX_BOOTSTRAP_EMPLOYEE_ID, FOX_BOOTSTRAP_NAME, and FOX_BOOTSTRAP_PASSWORD.');
   process.exit(1);
 }
 
@@ -20,7 +19,7 @@ try {
   const admin = await store.createEmployee({
     employeeId,
     fullName,
-    department,
+    department: null,
     role: 'administrator',
     passwordHash: hashPassword(password),
     mustChangePassword: false
