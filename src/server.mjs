@@ -21,6 +21,38 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, '../public');
 const store = await openDatabase(config.databaseUrl);
+
+async function ensureBootstrapAdministrator() {
+  const values = {
+    employeeId: process.env.FOX_BOOTSTRAP_EMPLOYEE_ID?.trim(),
+    fullName: process.env.FOX_BOOTSTRAP_NAME?.trim(),
+    department: process.env.FOX_BOOTSTRAP_DEPARTMENT?.trim(),
+    password: process.env.FOX_BOOTSTRAP_PASSWORD
+  };
+  const configured = Object.values(values).filter(Boolean).length;
+  if (configured === 0) return;
+  if (configured !== 4) {
+    console.warn('Bootstrap administrator variables are incomplete; first-admin creation was skipped.');
+    return;
+  }
+  if (await store.countActiveAdmins() > 0) return;
+  const admin = await store.createEmployee({
+    employeeId: values.employeeId,
+    fullName: values.fullName,
+    department: values.department,
+    role: 'administrator',
+    passwordHash: hashPassword(values.password),
+    mustChangePassword: false
+  });
+  await store.addAudit({
+    action: 'bootstrap_admin_created',
+    targetEmployeePk: admin.id,
+    details: { employeeId: admin.employee_id }
+  });
+  console.log('Bootstrap administrator created from environment configuration.');
+}
+
+await ensureBootstrapAdministrator();
 const dummyPasswordHash = hashPassword(randomBytes(24).toString('base64url'));
 
 setInterval(async () => {
