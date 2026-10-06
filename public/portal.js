@@ -16,6 +16,7 @@
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       message.textContent = '';
+      message.classList.remove('form-error');
       const submit = form.querySelector('button[type="submit"]');
       submit.disabled = true;
       try {
@@ -36,12 +37,36 @@
     return;
   }
 
-  const dashboard = await Fox.api('/api/dashboard');
+  const [dashboard, directoryResponse] = await Promise.all([
+    Fox.api('/api/dashboard'),
+    Fox.api('/api/directory')
+  ]);
+
   portalContent.hidden = false;
-  document.querySelector('#welcome-name').textContent = `Welcome, ${dashboard.user.fullName}`;
-  document.querySelector('#welcome-role').textContent = Fox.formatRole(dashboard.user.role);
-  document.querySelector('#department-chip').textContent = dashboard.user.department;
-  if (dashboard.user.role === 'administrator') document.querySelector('#admin-link').hidden = false;
+  const user = dashboard.user;
+  const roleLabel = Fox.formatRole(user.role);
+
+  document.querySelector('#welcome-name').textContent = `Welcome, ${user.fullName}`;
+  document.querySelector('#welcome-role').textContent = roleLabel;
+  document.querySelector('#profile-name').textContent = user.fullName;
+  document.querySelector('#profile-title').textContent = roleLabel;
+  document.querySelector('#profile-id').textContent = user.employeeId;
+  document.querySelector('#profile-role').textContent = roleLabel;
+  document.querySelector('#profile-initials').textContent = user.fullName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join('');
+
+  const departmentRow = document.querySelector('#profile-department-row');
+  if (user.role === 'administrator' || !user.department) {
+    departmentRow.hidden = true;
+  } else {
+    document.querySelector('#profile-department').textContent = user.department;
+  }
+
+  if (user.role === 'administrator') document.querySelector('#admin-link').hidden = false;
 
   const moduleGrid = document.querySelector('#module-grid');
   moduleGrid.replaceChildren(...dashboard.modules.map((module, index) => {
@@ -56,4 +81,53 @@
     card.append(marker, heading, description);
     return card;
   }));
+
+  const directory = directoryResponse.employees;
+
+  function renderDirectory(filter = '') {
+    const needle = filter.trim().toLowerCase();
+    const visible = directory.filter((employee) => {
+      const values = [employee.employeeId, employee.fullName, employee.role, employee.department].filter(Boolean);
+      return !needle || values.some((value) => String(value).toLowerCase().includes(needle));
+    });
+
+    const grid = document.querySelector('#directory-grid');
+    if (!visible.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state directory-empty';
+      empty.innerHTML = '<strong>No matching employees.</strong><span>Try a different name, role, department, or Employee ID.</span>';
+      grid.replaceChildren(empty);
+      return;
+    }
+
+    grid.replaceChildren(...visible.map((employee) => {
+      const card = document.createElement('article');
+      card.className = 'person-card';
+
+      const avatar = document.createElement('div');
+      avatar.className = 'person-avatar';
+      avatar.textContent = employee.fullName
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0].toUpperCase())
+        .join('');
+
+      const info = document.createElement('div');
+      const name = document.createElement('strong');
+      name.textContent = employee.fullName;
+      const role = document.createElement('span');
+      role.textContent = Fox.formatRole(employee.role);
+      const meta = document.createElement('small');
+      meta.textContent = employee.role === 'administrator' || !employee.department
+        ? employee.employeeId
+        : `${employee.department} · ${employee.employeeId}`;
+      info.append(name, role, meta);
+      card.append(avatar, info);
+      return card;
+    }));
+  }
+
+  document.querySelector('#directory-search').addEventListener('input', (event) => renderDirectory(event.target.value));
+  renderDirectory();
 })();
