@@ -2,51 +2,51 @@ export const ROLE_DEFINITIONS = Object.freeze([
   {
     key: 'administrator',
     label: 'Administrator',
-    description: 'Full organization and access management.',
+    description: 'Organization-wide account, access, and policy administration.',
     permissions: ['*'],
-    modules: ['overview', 'people', 'operations', 'quality', 'support', 'documents']
+    modules: ['overview', 'people', 'requests', 'attendance', 'documents']
   },
   {
     key: 'manager',
     label: 'Manager',
-    description: 'Team coordination, reporting, and operational oversight.',
+    description: 'Team coordination, approvals, reporting, and operational oversight.',
     permissions: ['portal.use'],
-    modules: ['overview', 'people', 'operations', 'quality', 'documents']
+    modules: ['overview', 'people', 'requests', 'attendance', 'operations', 'quality', 'documents']
   },
   {
     key: 'operations_engineer',
     label: 'Operations Engineer',
     description: 'Automation line, device, and production operations.',
     permissions: ['portal.use'],
-    modules: ['overview', 'operations', 'quality', 'documents']
+    modules: ['overview', 'people', 'requests', 'attendance', 'operations', 'quality', 'documents']
   },
   {
     key: 'robotics_technician',
     label: 'Robotics Technician',
     description: 'Robotics maintenance, diagnostics, and floor support.',
     permissions: ['portal.use'],
-    modules: ['overview', 'operations', 'documents']
+    modules: ['overview', 'people', 'requests', 'attendance', 'operations', 'documents']
   },
   {
     key: 'qa_analyst',
     label: 'QA Analyst',
     description: 'Quality checks, anomaly review, and product verification.',
     permissions: ['portal.use'],
-    modules: ['overview', 'quality', 'documents']
+    modules: ['overview', 'people', 'requests', 'attendance', 'quality', 'documents']
   },
   {
     key: 'support_executive',
     label: 'Support Executive',
-    description: 'Customer support, service coordination, and documentation.',
+    description: 'Service coordination, customer support, and documentation.',
     permissions: ['portal.use'],
-    modules: ['overview', 'support', 'documents']
+    modules: ['overview', 'people', 'requests', 'attendance', 'support', 'documents']
   },
   {
     key: 'employee',
     label: 'Employee',
-    description: 'Standard employee workspace access.',
+    description: 'Standard employee self-service and organization workspace access.',
     permissions: ['portal.use'],
-    modules: ['overview', 'documents']
+    modules: ['overview', 'people', 'requests', 'attendance', 'documents']
   }
 ]);
 
