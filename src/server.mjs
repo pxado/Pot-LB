@@ -208,7 +208,6 @@ async function handleApi(req, res, url) {
     const employees = await store.listDirectory();
     return json(res, 200, {
       employees: employees.map((employee) => ({
-        employeeId: employee.employee_id,
         fullName: employee.full_name,
         department: employee.department,
         role: employee.role
