@@ -7,5 +7,8 @@ test('roles expose expected administrative and employee boundaries', () => {
   assert.equal(roleExists('unknown'), false);
   assert.equal(hasPermission('administrator', '*'), true);
   assert.equal(hasPermission('employee', '*'), false);
-  assert.deepEqual(modulesForRole('employee'), ['overview', 'documents']);
+  assert.deepEqual(
+    modulesForRole('employee'),
+    ['overview', 'people', 'requests', 'attendance', 'documents']
+  );
 });
