@@ -19,13 +19,18 @@ function cleanText(value, field, max = 100) {
   return text;
 }
 
+function normalizeDepartment(value, role) {
+  if (role === 'administrator') return null;
+  return cleanText(value, 'Department');
+}
+
 async function initialize(pool) {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS employees (
       id BIGSERIAL PRIMARY KEY,
       employee_id TEXT NOT NULL,
       full_name TEXT NOT NULL,
-      department TEXT NOT NULL,
+      department TEXT,
       role TEXT NOT NULL CHECK (role IN (${roleValues})),
       password_hash TEXT NOT NULL,
       active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -34,6 +39,8 @@ async function initialize(pool) {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       last_login_at TIMESTAMPTZ
     );
+
+    ALTER TABLE employees ALTER COLUMN department DROP NOT NULL;
 
     CREATE UNIQUE INDEX IF NOT EXISTS idx_employees_employee_id_upper
       ON employees (UPPER(employee_id));
@@ -100,6 +107,16 @@ function createStore(pool) {
       return rows;
     },
 
+    async listDirectory() {
+      const { rows } = await pool.query(`
+        SELECT employee_id, full_name, department, role
+        FROM employees
+        WHERE active = TRUE
+        ORDER BY full_name, employee_id
+      `);
+      return rows;
+    },
+
     async createEmployee({ employeeId, fullName, department, role, passwordHash, mustChangePassword = true }) {
       if (!roleExists(role)) throw new Error('Invalid role');
       const { rows } = await pool.query(`
@@ -109,7 +126,7 @@ function createStore(pool) {
       `, [
         normalizeEmployeeId(employeeId),
         cleanText(fullName, 'Full name'),
-        cleanText(department, 'Department'),
+        normalizeDepartment(department, role),
         role,
         passwordHash,
         Boolean(mustChangePassword)
@@ -122,10 +139,11 @@ function createStore(pool) {
       if (!current) return null;
       const employeeId = changes.employeeId === undefined ? current.employee_id : normalizeEmployeeId(changes.employeeId);
       const fullName = changes.fullName === undefined ? current.full_name : cleanText(changes.fullName, 'Full name');
-      const department = changes.department === undefined ? current.department : cleanText(changes.department, 'Department');
       const role = changes.role === undefined ? current.role : changes.role;
-      const active = changes.active === undefined ? current.active : Boolean(changes.active);
       if (!roleExists(role)) throw new Error('Invalid role');
+      const departmentSource = changes.department === undefined ? current.department : changes.department;
+      const department = normalizeDepartment(departmentSource, role);
+      const active = changes.active === undefined ? current.active : Boolean(changes.active);
       await pool.query(`
         UPDATE employees
         SET employee_id = $1, full_name = $2, department = $3, role = $4, active = $5, updated_at = NOW()
@@ -158,7 +176,7 @@ function createStore(pool) {
     },
 
     async countDepartments() {
-      const { rows } = await pool.query('SELECT COUNT(DISTINCT department)::int AS count FROM employees WHERE active = TRUE');
+      const { rows } = await pool.query('SELECT COUNT(DISTINCT department)::int AS count FROM employees WHERE active = TRUE AND department IS NOT NULL');
       return rows[0].count;
     },
 
