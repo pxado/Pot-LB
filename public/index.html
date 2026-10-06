@@ -3,101 +3,70 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Fox Pvt. Ltd. builds intelligent home automation products combining robotics, connected devices, and AI-assisted control.">
-  <title>Fox Pvt. Ltd. | Intelligent Home Automation</title>
+  <meta name="description" content="Fox Workplace - internal employee management portal for Fox Pvt. Ltd.">
+  <title>Fox Workplace | Fox Pvt. Ltd.</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
-<body class="site-page">
-  <header class="site-header shell">
-    <a class="brand" href="/" aria-label="Fox Pvt. Ltd. home">
-      <img src="/assets/fox-mark.svg" alt="" width="48" height="48">
-      <span><strong>Fox Pvt. Ltd.</strong><small>Automation for a better tomorrow</small></span>
+<body class="gateway-page">
+  <header class="gateway-topbar">
+    <a class="brand" href="/" aria-label="Fox Workplace home">
+      <img src="/assets/fox-mark.svg" alt="" width="44" height="44">
+      <span><strong>Fox Pvt. Ltd.</strong><small>Fox Workplace</small></span>
     </a>
-    <nav class="site-nav" aria-label="Primary navigation">
-      <a href="#solutions">Solutions</a>
-      <a href="#products">Products</a>
-      <a href="#capabilities">Capabilities</a>
-      <a href="#company">Company</a>
-    </nav>
-    <a class="button button-primary button-small" href="/login">Employee Login</a>
+    <div class="internal-label"><span></span> Internal employee system</div>
   </header>
 
-  <main>
-    <section class="hero shell">
-      <div class="hero-copy">
-        <p class="eyebrow">INTELLIGENT SPACES. PRACTICAL AUTOMATION.</p>
-        <h1>Smart living, built with <span>robotics and AI.</span></h1>
-        <p class="hero-lead">Fox Pvt. Ltd. designs and builds connected home systems that bring lighting, climate, access, safety, energy, and automation into one dependable environment.</p>
-        <div class="hero-actions">
-          <a class="button button-primary" href="#products">Explore our products</a>
-          <a class="button button-secondary" href="#company">How we work</a>
-        </div>
-        <div class="hero-points" aria-label="Company priorities">
-          <span><b>01</b> Safer homes</span>
-          <span><b>02</b> Efficient energy</span>
-          <span><b>03</b> Reliable automation</span>
-        </div>
+  <main class="gateway-main">
+    <section class="gateway-intro">
+      <div class="gateway-copy">
+        <p class="eyebrow">FOX WORKPLACE</p>
+        <h1>Your organization workspace.</h1>
+        <p>Fox Workplace is the internal access point for employee self-service, people information, work areas, organization documents, requests, and administrative controls.</p>
+        <a class="button button-primary" href="/login">Sign in to Workplace</a>
       </div>
-      <div class="hero-visual">
-        <img src="/assets/automation-hero.svg" alt="Connected smart home with robotics and automation controls">
-        <div class="hero-status-card">
-          <span class="status-dot"></span>
-          <div><strong>Integrated environment</strong><small>Devices, robotics and control working together</small></div>
+
+      <div class="gateway-access-card">
+        <div class="access-card-heading">
+          <img src="/assets/fox-mark.svg" alt="" width="54" height="54">
+          <div><strong>Employee access</strong><span>Fox Pvt. Ltd.</span></div>
         </div>
+        <p>Sign in with the Employee ID and password assigned to your organization account.</p>
+        <div class="access-rules">
+          <div><span>01</span><p><strong>Company account</strong><small>Access is available only to authorized Fox personnel.</small></p></div>
+          <div><span>02</span><p><strong>Role-based workspace</strong><small>Your tools and information depend on your assigned role.</small></p></div>
+          <div><span>03</span><p><strong>Managed credentials</strong><small>Account creation and password resets are controlled by administrators.</small></p></div>
+        </div>
+        <a class="button button-secondary button-full" href="/login">Continue to sign in</a>
       </div>
     </section>
 
-    <section id="solutions" class="section shell">
-      <div class="section-heading">
-        <div><p class="eyebrow">WHAT WE BUILD</p><h2>Automation that works quietly in the background.</h2></div>
-        <p>Products are designed as part of one connected ecosystem, with local controls, secure access, and practical fail-safe operation.</p>
+    <section class="gateway-services" aria-labelledby="workspace-heading">
+      <div class="gateway-section-heading">
+        <div><p class="eyebrow">WORKPLACE SERVICES</p><h2 id="workspace-heading">One internal system for day-to-day work.</h2></div>
+        <p>Available services are shown according to employee role and organization permissions.</p>
       </div>
-      <div id="products" class="product-grid">
-        <article class="product-card"><span class="product-icon">L</span><h3>Smart Lighting</h3><p>Adaptive lighting controls for rooms, schedules, scenes, and occupancy-aware operation.</p><small>Lighting & ambience</small></article>
-        <article class="product-card"><span class="product-icon">C</span><h3>Climate Control</h3><p>Comfort automation that coordinates temperature, ventilation, and energy-aware schedules.</p><small>Climate & efficiency</small></article>
-        <article class="product-card"><span class="product-icon">A</span><h3>Access Systems</h3><p>Connected entry control for homes, shared spaces, and managed residential environments.</p><small>Entry & identity</small></article>
-        <article class="product-card"><span class="product-icon">S</span><h3>Safety Monitoring</h3><p>Sensor-driven alerts and coordinated responses for household safety and device health.</p><small>Safety & awareness</small></article>
-        <article class="product-card"><span class="product-icon">E</span><h3>Energy Intelligence</h3><p>Usage visibility and automation rules that reduce unnecessary consumption without reducing comfort.</p><small>Energy & insights</small></article>
-        <article class="product-card"><span class="product-icon">R</span><h3>Robotic Assistance</h3><p>Task-focused robotics and automated equipment designed for controlled residential workflows.</p><small>Robotics & automation</small></article>
-      </div>
-    </section>
-
-    <section id="capabilities" class="section section-dark">
-      <div class="shell capabilities-layout">
-        <div>
-          <p class="eyebrow eyebrow-light">ENGINEERING CAPABILITIES</p>
-          <h2>From product design to an operating environment.</h2>
-          <p class="muted-light">Fox teams work across embedded systems, robotics, automation, quality, connected software, and service operations so products are engineered as a complete system rather than isolated devices.</p>
-        </div>
-        <div class="capability-list">
-          <article><strong>AI Orchestration</strong><span>Context-aware control across supported devices and spaces.</span></article>
-          <article><strong>Robotics Engineering</strong><span>Repeatable automation for manufacturing and controlled environments.</span></article>
-          <article><strong>Quality Systems</strong><span>Inspection workflows, traceability, and field feedback loops.</span></article>
-          <article><strong>Lifecycle Support</strong><span>Service processes, documentation, updates, and product health.</span></article>
-        </div>
+      <div class="service-tile-grid">
+        <article><span>01</span><h3>My Workspace</h3><p>Role, account information, assigned work, and personal organization access.</p></article>
+        <article><span>02</span><h3>People Directory</h3><p>Find active colleagues and understand their role and department within Fox.</p></article>
+        <article><span>03</span><h3>Requests & Attendance</h3><p>Employee request, leave, attendance, and schedule services as they are enabled.</p></article>
+        <article><span>04</span><h3>Documents & Policies</h3><p>Organization policies, SOPs, training material, manuals, and controlled documents.</p></article>
+        <article><span>05</span><h3>Role Workspaces</h3><p>Operational, robotics, quality, support, and management tools based on responsibility.</p></article>
+        <article><span>06</span><h3>Administration</h3><p>Authorized administrators manage employees, roles, access, passwords, and audit activity.</p></article>
       </div>
     </section>
 
-    <section id="company" class="section shell company-grid">
-      <div class="company-panel">
-        <p class="eyebrow">FOX PVT. LTD.</p>
-        <h2>Built for homes, operated like engineering.</h2>
-        <p>We focus on products that remain understandable, serviceable, and dependable after installation. That means clear controls, documented procedures, measured quality, and accountable operations.</p>
+    <section class="gateway-notice">
+      <div>
+        <strong>Internal use only</strong>
+        <p>This system is intended for Fox Pvt. Ltd. employees and authorized organization users. Do not share organization credentials.</p>
       </div>
-      <div class="company-values">
-        <div><b>01</b><strong>Useful before impressive</strong><span>Technology should solve a real household problem.</span></div>
-        <div><b>02</b><strong>Secure by design</strong><span>Access and control are treated as engineering requirements.</span></div>
-        <div><b>03</b><strong>Maintainable systems</strong><span>Products are designed for service, diagnostics, and lifecycle support.</span></div>
-      </div>
+      <a href="/login">Employee sign in →</a>
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="shell footer-layout">
-      <a class="brand brand-footer" href="/"><img src="/assets/fox-mark.svg" alt="" width="42" height="42"><span><strong>Fox Pvt. Ltd.</strong><small>Automation for a better tomorrow</small></span></a>
-      <p>Home automation, robotics and connected environments.</p>
-      <a href="/login">Employee access</a>
-    </div>
+  <footer class="gateway-footer">
+    <span>Fox Pvt. Ltd. · Fox Workplace</span>
+    <span>Home Automation · Robotics · AI-Controlled Environments</span>
   </footer>
 </body>
 </html>
