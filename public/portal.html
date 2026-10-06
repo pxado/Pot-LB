@@ -3,73 +3,109 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Employee Portal | Fox Pvt. Ltd.</title>
+  <title>Fox Workplace | Employee Home</title>
   <link rel="stylesheet" href="/styles.css">
   <script src="/common.js" defer></script>
   <script src="/portal.js" defer></script>
 </head>
 <body class="app-page">
   <header class="app-topbar">
-    <a class="brand" href="/portal"><img src="/assets/fox-mark.svg" alt="" width="44" height="44"><span><strong>Fox Pvt. Ltd.</strong><small>Employee Portal</small></span></a>
+    <a class="brand" href="/portal"><img src="/assets/fox-mark.svg" alt="" width="44" height="44"><span><strong>Fox Workplace</strong><small>Fox Pvt. Ltd.</small></span></a>
     <div class="app-topbar-actions">
       <span id="top-user" class="top-user"></span>
       <button id="logout-button" class="button button-ghost button-small" type="button">Sign out</button>
     </div>
   </header>
+
   <div class="app-layout">
     <aside class="app-sidebar">
-      <nav aria-label="Employee portal">
-        <a class="active" href="/portal">Dashboard</a>
-        <a href="#workspace">My Workspace</a>
-        <a href="#assignments">Assigned Work</a>
-        <a href="#resources">Resources</a>
-      </nav>
-      <div class="sidebar-note"><strong>Fox Operations</strong><span>Role-based workspace access</span></div>
+      <div>
+        <p class="sidebar-label">WORKPLACE</p>
+        <nav aria-label="Employee portal">
+          <a class="active" href="/portal">Home</a>
+          <a href="#profile">My profile</a>
+          <a href="#people">People directory</a>
+          <a href="#requests">My requests</a>
+          <a href="#attendance">Attendance & leave</a>
+          <a href="#documents">Documents</a>
+          <a href="#workspace">Role workspace</a>
+        </nav>
+      </div>
+      <div class="sidebar-note"><strong>Fox Pvt. Ltd.</strong><span>Internal employee system</span></div>
     </aside>
+
     <main class="app-main">
       <section id="password-required" class="password-required" hidden>
         <div>
           <p class="eyebrow">ACCOUNT ACTION REQUIRED</p>
-          <h1>Set your own password before continuing.</h1>
-          <p>Your administrator issued a temporary password. Confirm it once, then choose a new password for your account.</p>
+          <h1>Set your organization password.</h1>
+          <p>Your administrator issued a temporary password. Confirm it once and choose your own password before using Workplace.</p>
         </div>
         <form id="change-password-form" class="form-grid compact-form">
           <label>Current password<input name="currentPassword" type="password" autocomplete="current-password" required></label>
           <label>New password<input name="newPassword" type="password" autocomplete="new-password" minlength="12" maxlength="256" required></label>
           <p id="password-message" class="form-message" role="alert"></p>
-          <button class="button button-primary" type="submit">Change password</button>
+          <button class="button button-primary" type="submit">Set new password</button>
         </form>
       </section>
 
       <div id="portal-content" hidden>
-        <section class="dashboard-hero">
-          <div><p class="eyebrow eyebrow-light">EMPLOYEE WORKSPACE</p><h1 id="welcome-name">Welcome</h1><p id="welcome-role"></p></div>
-          <div class="dashboard-hero-meta"><span id="department-chip"></span><a id="admin-link" class="button button-primary button-small" href="/admin" hidden>Open Admin Console</a></div>
+        <section class="workplace-welcome">
+          <div>
+            <p class="eyebrow">EMPLOYEE HOME</p>
+            <h1 id="welcome-name">Welcome</h1>
+            <p id="welcome-role" class="muted"></p>
+          </div>
+          <a id="admin-link" class="button button-primary button-small" href="/admin" hidden>Administration</a>
+        </section>
+
+        <section id="profile" class="profile-strip panel">
+          <div class="profile-identity">
+            <div id="profile-initials" class="avatar"></div>
+            <div><strong id="profile-name"></strong><span id="profile-title"></span></div>
+          </div>
+          <dl class="profile-facts">
+            <div><dt>Employee ID</dt><dd id="profile-id">—</dd></div>
+            <div><dt>Role</dt><dd id="profile-role">—</dd></div>
+            <div id="profile-department-row"><dt>Department</dt><dd id="profile-department">—</dd></div>
+            <div><dt>Account</dt><dd><span class="status-pill status-active">Active</span></dd></div>
+          </dl>
         </section>
 
         <section id="workspace" class="dashboard-section">
-          <div class="section-row"><div><p class="eyebrow">ROLE WORKSPACE</p><h2>Your work areas</h2></div><p>Access is based on your assigned role. Additional operational data will appear here as company modules are connected.</p></div>
+          <div class="section-row">
+            <div><p class="eyebrow">MY SERVICES</p><h2>Workplace services</h2></div>
+            <p>Services are displayed according to your assigned organization role.</p>
+          </div>
           <div id="module-grid" class="module-grid"></div>
         </section>
 
-        <section id="assignments" class="dashboard-grid-two">
-          <article class="panel">
-            <div class="panel-heading"><div><p class="eyebrow">ASSIGNED WORK</p><h2>Current assignments</h2></div><span class="badge">Live</span></div>
-            <div id="assignment-list" class="empty-state"><strong>No work items assigned yet.</strong><span>Assignments will appear here when work-order management is connected.</span></div>
+        <section class="dashboard-grid-two">
+          <article id="requests" class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">SELF SERVICE</p><h2>My requests</h2></div></div>
+            <div class="empty-state"><strong>No request workflow is enabled yet.</strong><span>Leave, access, service, and other request types can be connected here as the organization configures them.</span></div>
           </article>
-          <article class="panel">
-            <div class="panel-heading"><div><p class="eyebrow">ORGANIZATION</p><h2>Announcements</h2></div></div>
-            <div id="announcement-list" class="empty-state"><strong>No active announcements.</strong><span>Company updates and operational notices will appear here.</span></div>
+          <article id="attendance" class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">TIME & AVAILABILITY</p><h2>Attendance & leave</h2></div></div>
+            <div class="empty-state"><strong>Attendance services are not configured yet.</strong><span>Shift, attendance, holiday, and leave information will appear here when enabled.</span></div>
           </article>
         </section>
 
-        <section id="resources" class="dashboard-section">
-          <div class="section-row"><div><p class="eyebrow">QUICK ACCESS</p><h2>Resources</h2></div></div>
+        <section id="people" class="dashboard-section">
+          <div class="section-row directory-heading">
+            <div><p class="eyebrow">ORGANIZATION</p><h2>People directory</h2></div>
+            <label class="search-field"><span class="sr-only">Search people</span><input id="directory-search" type="search" placeholder="Search people, role or department"></label>
+          </div>
+          <div id="directory-grid" class="directory-grid"></div>
+        </section>
+
+        <section id="documents" class="dashboard-section">
+          <div class="section-row"><div><p class="eyebrow">COMPANY RESOURCES</p><h2>Documents & policies</h2></div></div>
           <div class="resource-grid">
-            <article><span>01</span><strong>Standard Operating Procedures</strong><p>Process documentation for product and operational work.</p></article>
-            <article><span>02</span><strong>Safety & Compliance</strong><p>Safety guidance, checklists, and controlled-work procedures.</p></article>
-            <article><span>03</span><strong>Product Manuals</strong><p>Installation, operation, diagnostics, and service documentation.</p></article>
-            <article><span>04</span><strong>Training & Development</strong><p>Role-specific training, certifications, and learning paths.</p></article>
+            <article><span>01</span><strong>Organization Policies</strong><p>Workplace policies, employee guidance, and organization procedures.</p></article>
+            <article><span>02</span><strong>Standard Operating Procedures</strong><p>Controlled procedures for operational and technical work.</p></article>
+            <article><span>03</span><strong>Safety & Compliance</strong><p>Safety guidance, checklists, and required compliance material.</p></article>
+            <article><span>04</span><strong>Training & Manuals</strong><p>Role training, technical manuals, and learning resources.</p></article>
           </div>
         </section>
       </div>
