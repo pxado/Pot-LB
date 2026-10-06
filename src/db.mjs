@@ -42,6 +42,8 @@ async function initialize(pool) {
 
     ALTER TABLE employees ALTER COLUMN department DROP NOT NULL;
 
+    UPDATE employees SET department = NULL WHERE role = 'administrator' AND department IS NOT NULL;
+
     CREATE UNIQUE INDEX IF NOT EXISTS idx_employees_employee_id_upper
       ON employees (UPPER(employee_id));
 
