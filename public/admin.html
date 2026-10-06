@@ -3,41 +3,61 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Admin Console | Fox Pvt. Ltd.</title>
+  <title>Administration | Fox Workplace</title>
   <link rel="stylesheet" href="/styles.css">
   <script src="/common.js" defer></script>
   <script src="/admin.js" defer></script>
 </head>
 <body class="app-page admin-page">
   <header class="app-topbar">
-    <a class="brand" href="/admin"><img src="/assets/fox-mark.svg" alt="" width="44" height="44"><span><strong>Fox Pvt. Ltd.</strong><small>Admin Console</small></span></a>
-    <div class="app-topbar-actions"><span id="top-user" class="top-user"></span><a class="button button-ghost button-small" href="/portal">Employee Portal</a><button id="logout-button" class="button button-ghost button-small" type="button">Sign out</button></div>
+    <a class="brand" href="/admin"><img src="/assets/fox-mark.svg" alt="" width="44" height="44"><span><strong>Fox Workplace</strong><small>Administration</small></span></a>
+    <div class="app-topbar-actions">
+      <span id="top-user" class="top-user"></span>
+      <a class="button button-ghost button-small" href="/portal">Employee home</a>
+      <button id="logout-button" class="button button-ghost button-small" type="button">Sign out</button>
+    </div>
   </header>
+
   <div class="app-layout">
     <aside class="app-sidebar admin-sidebar">
-      <nav aria-label="Administrator console">
-        <a class="active" href="#overview">Overview</a>
-        <a href="#employees">Employee Management</a>
-        <a href="#roles">Roles & Permissions</a>
-        <a href="#audit">Audit Activity</a>
-      </nav>
-      <div class="sidebar-note"><strong>Administrative Access</strong><span>Changes are recorded in the audit log.</span></div>
+      <div>
+        <p class="sidebar-label">ADMINISTRATION</p>
+        <nav aria-label="Administrator console">
+          <a class="active" href="#overview">Overview</a>
+          <a href="#employees">People</a>
+          <a href="#roles">Access & roles</a>
+          <a href="#audit">Audit log</a>
+        </nav>
+      </div>
+      <div class="sidebar-note"><strong>Organization access</strong><span>Administrative changes are recorded.</span></div>
     </aside>
+
     <main class="app-main">
       <section id="overview" class="admin-heading">
-        <div><p class="eyebrow">ADMIN DASHBOARD</p><h1>Organization control center</h1><p>Manage employee access, roles, account status, and credential resets from one place.</p></div>
+        <div>
+          <p class="eyebrow">WORKPLACE ADMINISTRATION</p>
+          <h1>People & access</h1>
+          <p>Manage organization accounts, employee roles, account status, and password resets.</p>
+        </div>
         <button id="open-create" class="button button-primary" type="button">Add employee</button>
       </section>
 
       <section class="stats-grid" aria-label="Organization summary">
-        <article><span>Total employees</span><strong id="stat-employees">—</strong></article>
-        <article><span>Active users</span><strong id="stat-active">—</strong></article>
+        <article><span>Total accounts</span><strong id="stat-employees">—</strong></article>
+        <article><span>Active accounts</span><strong id="stat-active">—</strong></article>
         <article><span>Departments</span><strong id="stat-departments">—</strong></article>
         <article><span>Administrators</span><strong id="stat-admins">—</strong></article>
       </section>
 
+      <section class="admin-info-banner">
+        <div><strong>Administrator accounts are organization-level accounts.</strong><span>They are not assigned to a department. Departments apply only to non-administrator employees.</span></div>
+      </section>
+
       <section id="employees" class="panel admin-table-panel">
-        <div class="panel-heading table-heading"><div><p class="eyebrow">PEOPLE & ACCESS</p><h2>Employee management</h2></div><label class="search-field"><span class="sr-only">Search employees</span><input id="employee-search" type="search" placeholder="Search name, ID, department or role"></label></div>
+        <div class="panel-heading table-heading">
+          <div><p class="eyebrow">PEOPLE DIRECTORY</p><h2>Employee accounts</h2></div>
+          <label class="search-field"><span class="sr-only">Search employees</span><input id="employee-search" type="search" placeholder="Search employee, ID, department or role"></label>
+        </div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Employee ID</th><th>Name</th><th>Department</th><th>Role</th><th>Status</th><th>Last login</th><th>Actions</th></tr></thead>
@@ -47,12 +67,15 @@
       </section>
 
       <section id="roles" class="dashboard-section">
-        <div class="section-row"><div><p class="eyebrow">ACCESS MODEL</p><h2>Roles & permissions</h2></div><p>Administrators control employee accounts. Other roles receive workspace modules appropriate to their job function.</p></div>
+        <div class="section-row">
+          <div><p class="eyebrow">ACCESS MODEL</p><h2>Roles & permissions</h2></div>
+          <p>Roles determine which Workplace services and role-specific work areas an employee can access.</p>
+        </div>
         <div id="role-grid" class="role-grid"></div>
       </section>
 
-      <section id="audit" class="panel">
-        <div class="panel-heading"><div><p class="eyebrow">ACCOUNTABILITY</p><h2>Recent admin activity</h2></div></div>
+      <section id="audit" class="panel audit-panel">
+        <div class="panel-heading"><div><p class="eyebrow">ACCOUNTABILITY</p><h2>Recent administrative activity</h2></div></div>
         <div id="audit-list" class="audit-list"></div>
       </section>
     </main>
@@ -60,43 +83,63 @@
 
   <dialog id="create-dialog" class="modal">
     <form id="create-form" method="dialog" class="modal-card">
-      <div class="modal-heading"><div><p class="eyebrow">NEW ACCOUNT</p><h2>Add employee</h2></div><button class="icon-button" type="button" data-close="create-dialog" aria-label="Close">×</button></div>
+      <div class="modal-heading">
+        <div><p class="eyebrow">NEW ORGANIZATION ACCOUNT</p><h2>Add employee</h2></div>
+        <button class="icon-button" type="button" data-close="create-dialog" aria-label="Close">×</button>
+      </div>
       <div class="form-grid">
         <label>Employee ID<input name="employeeId" maxlength="32" required></label>
         <label>Full name<input name="fullName" maxlength="100" required></label>
-        <label>Department<input name="department" maxlength="100" required></label>
         <label>Role<select name="role" id="create-role" required></select></label>
-        <label class="form-span-2">Temporary password<input name="password" type="password" minlength="12" maxlength="256" autocomplete="new-password" required><small>The employee will be required to change this after first sign-in.</small></label>
+        <label id="create-department-field">Department<input name="department" maxlength="100"><small>Required for non-administrator employees.</small></label>
+        <label class="form-span-2">Temporary password<input name="password" type="password" minlength="12" maxlength="256" autocomplete="new-password" required><small>The employee must change this password after first sign-in.</small></label>
       </div>
       <p id="create-message" class="form-message" role="alert"></p>
-      <div class="modal-actions"><button class="button button-secondary" type="button" data-close="create-dialog">Cancel</button><button class="button button-primary" type="submit">Create employee</button></div>
+      <div class="modal-actions">
+        <button class="button button-secondary" type="button" data-close="create-dialog">Cancel</button>
+        <button class="button button-primary" type="submit">Create account</button>
+      </div>
     </form>
   </dialog>
 
   <dialog id="edit-dialog" class="modal">
     <form id="edit-form" method="dialog" class="modal-card">
       <input type="hidden" name="id">
-      <div class="modal-heading"><div><p class="eyebrow">EMPLOYEE ACCESS</p><h2>Edit employee</h2></div><button class="icon-button" type="button" data-close="edit-dialog" aria-label="Close">×</button></div>
+      <div class="modal-heading">
+        <div><p class="eyebrow">ACCOUNT MANAGEMENT</p><h2>Manage employee</h2></div>
+        <button class="icon-button" type="button" data-close="edit-dialog" aria-label="Close">×</button>
+      </div>
       <div class="form-grid">
         <label>Employee ID<input name="employeeId" maxlength="32" required></label>
         <label>Full name<input name="fullName" maxlength="100" required></label>
-        <label>Department<input name="department" maxlength="100" required></label>
         <label>Role<select name="role" id="edit-role" required></select></label>
+        <label id="edit-department-field">Department<input name="department" maxlength="100"><small>Required for non-administrator employees.</small></label>
         <label class="toggle-label form-span-2"><input name="active" type="checkbox"><span>Account active</span></label>
       </div>
       <p id="edit-message" class="form-message" role="alert"></p>
-      <div class="modal-actions"><button id="open-reset" class="button button-danger-soft" type="button">Reset password</button><span class="modal-spacer"></span><button class="button button-secondary" type="button" data-close="edit-dialog">Cancel</button><button class="button button-primary" type="submit">Save changes</button></div>
+      <div class="modal-actions">
+        <button id="open-reset" class="button button-danger-soft" type="button">Reset password</button>
+        <span class="modal-spacer"></span>
+        <button class="button button-secondary" type="button" data-close="edit-dialog">Cancel</button>
+        <button class="button button-primary" type="submit">Save changes</button>
+      </div>
     </form>
   </dialog>
 
   <dialog id="reset-dialog" class="modal">
     <form id="reset-form" method="dialog" class="modal-card modal-card-small">
       <input type="hidden" name="id">
-      <div class="modal-heading"><div><p class="eyebrow">PASSWORD CONTROL</p><h2>Reset employee password</h2></div><button class="icon-button" type="button" data-close="reset-dialog" aria-label="Close">×</button></div>
+      <div class="modal-heading">
+        <div><p class="eyebrow">PASSWORD CONTROL</p><h2>Reset password</h2></div>
+        <button class="icon-button" type="button" data-close="reset-dialog" aria-label="Close">×</button>
+      </div>
       <p id="reset-target" class="muted"></p>
-      <label>New temporary password<input name="password" type="password" minlength="12" maxlength="256" autocomplete="new-password" required><small>The employee will be required to change this at next sign-in.</small></label>
+      <label>New temporary password<input name="password" type="password" minlength="12" maxlength="256" autocomplete="new-password" required><small>The employee must change this password at next sign-in.</small></label>
       <p id="reset-message" class="form-message" role="alert"></p>
-      <div class="modal-actions"><button class="button button-secondary" type="button" data-close="reset-dialog">Cancel</button><button class="button button-primary" type="submit">Reset password</button></div>
+      <div class="modal-actions">
+        <button class="button button-secondary" type="button" data-close="reset-dialog">Cancel</button>
+        <button class="button button-primary" type="submit">Reset password</button>
+      </div>
     </form>
   </dialog>
 </body>
