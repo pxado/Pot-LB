@@ -3,34 +3,38 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Employee Sign In | Fox Pvt. Ltd.</title>
+  <title>Employee Sign In | Fox Workplace</title>
   <link rel="stylesheet" href="/styles.css">
   <script src="/login.js" defer></script>
 </head>
 <body class="auth-page">
   <main class="auth-shell">
     <section class="auth-brand-panel">
-      <a class="brand brand-inverse" href="/"><img src="/assets/fox-mark.svg" alt="" width="52" height="52"><span><strong>Fox Pvt. Ltd.</strong><small>Organization Portal</small></span></a>
+      <a class="brand brand-inverse" href="/"><img src="/assets/fox-mark.svg" alt="" width="52" height="52"><span><strong>Fox Pvt. Ltd.</strong><small>Fox Workplace</small></span></a>
       <div class="auth-brand-copy">
-        <p class="eyebrow eyebrow-light">EMPLOYEE WORKSPACE</p>
-        <h1>One place for the work behind intelligent homes.</h1>
-        <p>Access assignments, operations, quality workflows, documents, training, and role-specific tools from your organization account.</p>
+        <p class="eyebrow eyebrow-light">INTERNAL EMPLOYEE SYSTEM</p>
+        <h1>Workplace access for Fox employees.</h1>
+        <p>Use your organization account to access employee self-service, people information, work areas, policies, and role-specific tools.</p>
       </div>
-      <p class="auth-footnote">Credentials are created and managed by authorized administrators. No default credentials are provided.</p>
+      <p class="auth-footnote">Authorized personnel only. Credentials are issued and managed by organization administrators.</p>
     </section>
     <section class="auth-card" aria-labelledby="sign-in-title">
       <div>
-        <p class="eyebrow">SECURE ACCESS</p>
-        <h2 id="sign-in-title">Employee sign in</h2>
-        <p class="muted">Use the Employee ID and password assigned to your account.</p>
+        <p class="eyebrow">FOX WORKPLACE</p>
+        <h2 id="sign-in-title">Sign in</h2>
+        <p class="muted">Enter your Employee ID and organization password.</p>
       </div>
       <form id="login-form" class="form-stack">
         <label>Employee ID<input name="employeeId" autocomplete="username" maxlength="32" required></label>
         <label>Password<input name="password" type="password" autocomplete="current-password" maxlength="256" required></label>
         <p id="login-error" class="form-message form-error" role="alert" hidden></p>
-        <button class="button button-primary button-full" type="submit">Sign in</button>
+        <button class="button button-primary button-full" type="submit">Sign in to Workplace</button>
       </form>
-      <a class="back-link" href="/">← Back to company site</a>
+      <div class="auth-help">
+        <strong>Need account assistance?</strong>
+        <span>Contact your organization administrator for account access or password reset.</span>
+      </div>
+      <a class="back-link" href="/">← Fox Workplace home</a>
     </section>
   </main>
 </body>
