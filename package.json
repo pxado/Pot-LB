@@ -1,0 +1,15 @@
+{
+  "name": "fox-organization-suite",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Fox Pvt. Ltd. organization portal for employee access and administration.",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "bootstrap-admin": "node src/bootstrap-admin.mjs",
+    "test": "node --test"
+  }
+}

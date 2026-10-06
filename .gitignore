@@ -2,12 +2,10 @@
 .env.*
 !.env.example
 node_modules/
+data/
+coverage/
 dist/
 build/
-coverage/
-.cache/
-tmp/
-temp/
 *.log
 .DS_Store
 Thumbs.db

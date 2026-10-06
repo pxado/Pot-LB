@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Employee Portal | Fox Pvt. Ltd.</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/common.js" defer></script>
+  <script src="/portal.js" defer></script>
+</head>
+<body class="app-page">
+  <header class="app-topbar">
+    <a class="brand" href="/portal"><img src="/assets/fox-mark.svg" alt="" width="44" height="44"><span><strong>Fox Pvt. Ltd.</strong><small>Employee Portal</small></span></a>
+    <div class="app-topbar-actions">
+      <span id="top-user" class="top-user"></span>
+      <button id="logout-button" class="button button-ghost button-small" type="button">Sign out</button>
+    </div>
+  </header>
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <nav aria-label="Employee portal">
+        <a class="active" href="/portal">Dashboard</a>
+        <a href="#workspace">My Workspace</a>
+        <a href="#assignments">Assigned Work</a>
+        <a href="#resources">Resources</a>
+      </nav>
+      <div class="sidebar-note"><strong>Fox Operations</strong><span>Role-based workspace access</span></div>
+    </aside>
+    <main class="app-main">
+      <section id="password-required" class="password-required" hidden>
+        <div>
+          <p class="eyebrow">ACCOUNT ACTION REQUIRED</p>
+          <h1>Set your own password before continuing.</h1>
+          <p>Your administrator issued a temporary password. Confirm it once, then choose a new password for your account.</p>
+        </div>
+        <form id="change-password-form" class="form-grid compact-form">
+          <label>Current password<input name="currentPassword" type="password" autocomplete="current-password" required></label>
+          <label>New password<input name="newPassword" type="password" autocomplete="new-password" minlength="12" maxlength="256" required></label>
+          <p id="password-message" class="form-message" role="alert"></p>
+          <button class="button button-primary" type="submit">Change password</button>
+        </form>
+      </section>
+
+      <div id="portal-content" hidden>
+        <section class="dashboard-hero">
+          <div><p class="eyebrow eyebrow-light">EMPLOYEE WORKSPACE</p><h1 id="welcome-name">Welcome</h1><p id="welcome-role"></p></div>
+          <div class="dashboard-hero-meta"><span id="department-chip"></span><a id="admin-link" class="button button-primary button-small" href="/admin" hidden>Open Admin Console</a></div>
+        </section>
+
+        <section id="workspace" class="dashboard-section">
+          <div class="section-row"><div><p class="eyebrow">ROLE WORKSPACE</p><h2>Your work areas</h2></div><p>Access is based on your assigned role. Additional operational data will appear here as company modules are connected.</p></div>
+          <div id="module-grid" class="module-grid"></div>
+        </section>
+
+        <section id="assignments" class="dashboard-grid-two">
+          <article class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">ASSIGNED WORK</p><h2>Current assignments</h2></div><span class="badge">Live</span></div>
+            <div id="assignment-list" class="empty-state"><strong>No work items assigned yet.</strong><span>Assignments will appear here when work-order management is connected.</span></div>
+          </article>
+          <article class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">ORGANIZATION</p><h2>Announcements</h2></div></div>
+            <div id="announcement-list" class="empty-state"><strong>No active announcements.</strong><span>Company updates and operational notices will appear here.</span></div>
+          </article>
+        </section>
+
+        <section id="resources" class="dashboard-section">
+          <div class="section-row"><div><p class="eyebrow">QUICK ACCESS</p><h2>Resources</h2></div></div>
+          <div class="resource-grid">
+            <article><span>01</span><strong>Standard Operating Procedures</strong><p>Process documentation for product and operational work.</p></article>
+            <article><span>02</span><strong>Safety & Compliance</strong><p>Safety guidance, checklists, and controlled-work procedures.</p></article>
+            <article><span>03</span><strong>Product Manuals</strong><p>Installation, operation, diagnostics, and service documentation.</p></article>
+            <article><span>04</span><strong>Training & Development</strong><p>Role-specific training, certifications, and learning paths.</p></article>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
