@@ -26,12 +26,11 @@ async function ensureBootstrapAdministrator() {
   const values = {
     employeeId: process.env.FOX_BOOTSTRAP_EMPLOYEE_ID?.trim(),
     fullName: process.env.FOX_BOOTSTRAP_NAME?.trim(),
-    department: process.env.FOX_BOOTSTRAP_DEPARTMENT?.trim(),
     password: process.env.FOX_BOOTSTRAP_PASSWORD
   };
   const configured = Object.values(values).filter(Boolean).length;
   if (configured === 0) return;
-  if (configured !== 4) {
+  if (configured !== 3) {
     console.warn('Bootstrap administrator variables are incomplete; first-admin creation was skipped.');
     return;
   }
@@ -39,7 +38,7 @@ async function ensureBootstrapAdministrator() {
   const admin = await store.createEmployee({
     employeeId: values.employeeId,
     fullName: values.fullName,
-    department: values.department,
+    department: null,
     role: 'administrator',
     passwordHash: hashPassword(values.password),
     mustChangePassword: false
@@ -187,18 +186,33 @@ async function handleApi(req, res, url) {
     const session = await requireAuth(req);
     const roleModules = modulesForRole(session.role);
     const moduleCopy = {
-      overview: { title: 'My Workspace', description: 'Profile, shift context, and organization access.' },
-      people: { title: 'Team Coordination', description: 'Team collaboration and operational communication.' },
-      operations: { title: 'Automation Operations', description: 'Assigned work, product lines, robotics floor, and device operations.' },
-      quality: { title: 'Quality & AI Monitoring', description: 'Quality checks, anomaly review, and inspection workflows.' },
-      support: { title: 'Service & Support', description: 'Service tickets, customer coordination, and support documentation.' },
-      documents: { title: 'Documents & Training', description: 'SOPs, safety guidance, manuals, and training resources.' }
+      overview: { title: 'My Profile', description: 'Employment identity, role, and personal workspace information.' },
+      people: { title: 'People Directory', description: 'Find active colleagues and understand organization roles.' },
+      requests: { title: 'My Requests', description: 'A home for leave, access, service, and other employee requests.' },
+      attendance: { title: 'Attendance & Leave', description: 'Attendance, schedules, holidays, and leave services when configured.' },
+      operations: { title: 'Work & Operations', description: 'Role-specific assignments, production, robotics, and operational work.' },
+      quality: { title: 'Quality Workspace', description: 'Inspection, anomaly review, and quality workflows for assigned roles.' },
+      support: { title: 'Service Desk', description: 'Service coordination and support workflows for assigned roles.' },
+      documents: { title: 'Documents & Policies', description: 'Organization policies, SOPs, manuals, training, and controlled documents.' }
     };
     return json(res, 200, {
       user: publicEmployee(session),
       modules: roleModules.map((key) => ({ key, ...moduleCopy[key] })),
       assignments: [],
       announcements: []
+    });
+  }
+
+  if (req.method === 'GET' && pathname === '/api/directory') {
+    await requireAuth(req);
+    const employees = await store.listDirectory();
+    return json(res, 200, {
+      employees: employees.map((employee) => ({
+        employeeId: employee.employee_id,
+        fullName: employee.full_name,
+        department: employee.department,
+        role: employee.role
+      }))
     });
   }
 
