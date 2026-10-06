@@ -64,9 +64,25 @@ async function initialize(pool) {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
+    CREATE TABLE IF NOT EXISTS auth_events (
+      id BIGSERIAL PRIMARY KEY,
+      employee_id_input TEXT NOT NULL,
+      employee_pk BIGINT REFERENCES employees(id) ON DELETE SET NULL,
+      outcome TEXT NOT NULL CHECK (outcome IN ('success', 'failure', 'rate_limited')),
+      client_ip TEXT,
+      socket_ip TEXT,
+      device_id TEXT,
+      user_agent TEXT,
+      railway_edge TEXT,
+      request_id TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
     CREATE INDEX IF NOT EXISTS idx_sessions_employee ON sessions(employee_pk);
     CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions(expires_at);
     CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_auth_events_created ON auth_events(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_auth_events_employee ON auth_events(employee_pk);
   `);
 }
 
@@ -224,6 +240,48 @@ function createStore(pool) {
 
     async purgeExpiredSessions() {
       await pool.query('DELETE FROM sessions WHERE expires_at <= NOW()');
+    },
+
+    async addAuthEvent({
+      employeeIdInput,
+      employeePk = null,
+      outcome,
+      clientIp = null,
+      socketIp = null,
+      deviceId = null,
+      userAgent = null,
+      railwayEdge = null,
+      requestId = null
+    }) {
+      await pool.query(`
+        INSERT INTO auth_events (
+          employee_id_input, employee_pk, outcome, client_ip, socket_ip,
+          device_id, user_agent, railway_edge, request_id
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `, [
+        String(employeeIdInput ?? '').trim().slice(0, 64) || 'unknown',
+        employeePk === null ? null : Number(employeePk),
+        outcome,
+        clientIp,
+        socketIp,
+        deviceId,
+        userAgent,
+        railwayEdge,
+        requestId
+      ]);
+    },
+
+    async listAuthEvents(limit = 50) {
+      const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), 200);
+      const { rows } = await pool.query(`
+        SELECT id, employee_id_input, outcome, client_ip, socket_ip, device_id,
+               user_agent, railway_edge, request_id, created_at
+        FROM auth_events
+        ORDER BY id DESC
+        LIMIT $1
+      `, [safeLimit]);
+      return rows;
     },
 
     async addAudit({ actorEmployeePk = null, action, targetEmployeePk = null, details = {} }) {

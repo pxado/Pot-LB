@@ -12,12 +12,22 @@ function required(name, value) {
   return text;
 }
 
+const host = process.env.HOST?.trim() || '127.0.0.1';
+const production = process.env.NODE_ENV === 'production';
+const loopbackHost = host === '127.0.0.1' || host === '::1' || host === 'localhost';
+const requestedRateLimitDisable = process.env.AUTH_RATE_LIMIT_ENABLED?.trim().toLowerCase() === 'false';
+
 export const config = Object.freeze({
-  host: process.env.HOST?.trim() || '127.0.0.1',
+  host,
   port: parsePort(process.env.PORT),
   databaseUrl: required('DATABASE_URL', process.env.DATABASE_URL),
-  production: process.env.NODE_ENV === 'production',
+  production,
   sessionTtlMs: 8 * 60 * 60 * 1000,
   maxJsonBytes: 64 * 1024,
-  cookieName: 'fox_session'
+  cookieName: 'fox_session',
+  logDir: process.env.LOG_DIR?.trim() || './runtime-logs',
+  authRateLimitEnabled: requestedRateLimitDisable && loopbackHost && !production ? false : true,
+  authRateLimitFailures: 8,
+  authRateLimitWindowMs: 60_000,
+  authRateLimitBlockMs: 60_000
 });

@@ -105,6 +105,38 @@
     }));
   }
 
+  function renderAuthEvents(events) {
+    const body = document.querySelector('#auth-event-table');
+    body.replaceChildren(...events.map((event) => {
+      const row = document.createElement('tr');
+      const time = document.createElement('td');
+      time.textContent = Fox.formatDate(event.created_at);
+
+      const employee = document.createElement('td');
+      employee.textContent = event.employee_id_input || '—';
+
+      const outcome = document.createElement('td');
+      const pill = document.createElement('span');
+      const success = event.outcome === 'success';
+      pill.className = `status-pill ${success ? 'status-active' : 'status-inactive'}`;
+      pill.textContent = event.outcome.replace('_', ' ');
+      outcome.append(pill);
+
+      const ip = document.createElement('td');
+      ip.textContent = event.client_ip || '—';
+
+      const device = document.createElement('td');
+      device.textContent = event.device_id ? event.device_id.slice(0, 12) : '—';
+      if (event.device_id) device.title = event.device_id;
+
+      const edge = document.createElement('td');
+      edge.textContent = event.railway_edge || '—';
+
+      row.append(time, employee, outcome, ip, device, edge);
+      return row;
+    }));
+  }
+
   function renderAudit(events) {
     const list = document.querySelector('#audit-list');
     if (!events.length) {
@@ -134,9 +166,10 @@
   }
 
   async function refresh() {
-    const [overview, employeeResponse, auditResponse] = await Promise.all([
+    const [overview, employeeResponse, authResponse, auditResponse] = await Promise.all([
       Fox.api('/api/admin/overview'),
       Fox.api('/api/admin/employees'),
+      Fox.api('/api/admin/auth-events?limit=50'),
       Fox.api('/api/admin/audit?limit=30')
     ]);
 
@@ -146,6 +179,7 @@
     document.querySelector('#stat-departments').textContent = overview.totals.departments;
     document.querySelector('#stat-admins').textContent = overview.totals.activeAdministrators;
     renderEmployees(document.querySelector('#employee-search').value);
+    renderAuthEvents(authResponse.events);
     renderAudit(auditResponse.events);
   }
 

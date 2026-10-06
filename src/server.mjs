@@ -6,6 +6,8 @@ import { config } from './config.mjs';
 import { openDatabase } from './db.mjs';
 import { hashPassword, verifyPassword } from './password.mjs';
 import { ROLE_DEFINITIONS, hasPermission, modulesForRole, roleExists } from './permissions.mjs';
+import { createLocalLogger, requestContext } from './logger.mjs';
+import { createLoginRateLimiter } from './rate-limit.mjs';
 import {
   clearSessionCookie,
   json,
@@ -21,6 +23,13 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, '../public');
 const store = await openDatabase(config.databaseUrl);
+const localLogger = createLocalLogger(config.logDir);
+const loginRateLimiter = createLoginRateLimiter({
+  enabled: config.authRateLimitEnabled,
+  maxFailures: config.authRateLimitFailures,
+  windowMs: config.authRateLimitWindowMs,
+  blockMs: config.authRateLimitBlockMs
+});
 
 async function ensureBootstrapAdministrator() {
   const values = {
@@ -125,22 +134,71 @@ async function handleApi(req, res, url) {
   if (req.method === 'POST' && pathname === '/api/auth/login') {
     requireSameOrigin(req);
     const body = await readJson(req, config.maxJsonBytes);
-    const employeeId = String(body.employeeId ?? '').trim();
+    const employeeId = String(body.employeeId ?? '').trim().slice(0, 64);
     const password = String(body.password ?? '');
+    const context = requestContext(req);
+    const limit = loginRateLimiter.check(context.clientIp, employeeId);
+
+    if (!limit.allowed) {
+      const event = {
+        employeeIdInput: employeeId,
+        outcome: 'rate_limited',
+        ...context
+      };
+      await store.addAuthEvent(event);
+      await store.addAudit({
+        action: 'login_rate_limited',
+        details: { employeeId, clientIp: context.clientIp, deviceId: context.deviceId }
+      });
+      localLogger.auth({ employeeId, outcome: 'rate_limited', ...context });
+      res.setHeader('Retry-After', String(limit.retryAfterSeconds));
+      return json(res, 429, { error: 'Too many sign-in attempts. Try again shortly.' });
+    }
+
     let employee = null;
     try {
       employee = await store.getEmployeeWithPassword(employeeId);
     } catch {
       employee = null;
     }
+
     const passwordOk = verifyPassword(password, employee?.password_hash ?? dummyPasswordHash);
+
     if (!employee || !employee.active || !passwordOk) {
+      loginRateLimiter.recordFailure(context.clientIp, employeeId);
+      const event = {
+        employeeIdInput: employeeId,
+        employeePk: employee?.id ?? null,
+        outcome: 'failure',
+        ...context
+      };
+      await store.addAuthEvent(event);
+      await store.addAudit({
+        action: 'login_failed',
+        targetEmployeePk: employee?.id ?? null,
+        details: { employeeId, clientIp: context.clientIp, deviceId: context.deviceId }
+      });
+      localLogger.auth({ employeeId, outcome: 'failure', ...context });
       return json(res, 401, { error: 'Invalid employee ID or password' });
     }
+
+    loginRateLimiter.recordSuccess(context.clientIp, employeeId);
     await store.deleteSessionsForEmployee(employee.id);
     const session = await store.createSession(employee.id, config.sessionTtlMs);
     await store.markLogin(employee.id);
-    await store.addAudit({ actorEmployeePk: employee.id, action: 'login', targetEmployeePk: employee.id });
+    await store.addAuthEvent({
+      employeeIdInput: employeeId,
+      employeePk: employee.id,
+      outcome: 'success',
+      ...context
+    });
+    await store.addAudit({
+      actorEmployeePk: employee.id,
+      action: 'login',
+      targetEmployeePk: employee.id,
+      details: { clientIp: context.clientIp, deviceId: context.deviceId }
+    });
+    localLogger.auth({ employeeId, outcome: 'success', ...context });
     setSessionCookie(res, config.cookieName, session.token, config.sessionTtlMs, config.production);
     return json(res, 200, {
       user: publicEmployee(await store.getEmployeeByPk(employee.id)),
@@ -186,12 +244,12 @@ async function handleApi(req, res, url) {
     const session = await requireAuth(req);
     const roleModules = modulesForRole(session.role);
     const moduleCopy = {
-      overview: { title: 'My Profile', description: 'Employment identity, role, and personal workspace information.' },
+      overview: { title: 'My Profile', description: 'Employment identity, role, and personal workplace information.' },
       people: { title: 'People Directory', description: 'Find active colleagues and understand organization roles.' },
       requests: { title: 'My Requests', description: 'A home for leave, access, service, and other employee requests.' },
       attendance: { title: 'Attendance & Leave', description: 'Attendance, schedules, holidays, and leave services when configured.' },
       operations: { title: 'Work & Operations', description: 'Role-specific assignments, production, robotics, and operational work.' },
-      quality: { title: 'Quality Workspace', description: 'Inspection, anomaly review, and quality workflows for assigned roles.' },
+      quality: { title: 'Quality Workplace', description: 'Inspection, anomaly review, and quality workflows for assigned roles.' },
       support: { title: 'Service Desk', description: 'Service coordination and support workflows for assigned roles.' },
       documents: { title: 'Documents & Policies', description: 'Organization policies, SOPs, manuals, training, and controlled documents.' }
     };
@@ -310,6 +368,11 @@ async function handleApi(req, res, url) {
     return json(res, 200, { ok: true });
   }
 
+  if (req.method === 'GET' && pathname === '/api/admin/auth-events') {
+    await requireAdmin(req);
+    return json(res, 200, { events: await store.listAuthEvents(url.searchParams.get('limit') ?? 50) });
+  }
+
   if (req.method === 'GET' && pathname === '/api/admin/audit') {
     await requireAdmin(req);
     return json(res, 200, { events: await store.listAudit(url.searchParams.get('limit') ?? 30) });
@@ -319,6 +382,17 @@ async function handleApi(req, res, url) {
 }
 
 const server = http.createServer(async (req, res) => {
+  const context = requestContext(req);
+  const startedAt = Date.now();
+  res.once('finish', () => {
+    localLogger.access({
+      method: req.method,
+      path: String(req.url ?? '/').split('?')[0],
+      status: res.statusCode,
+      durationMs: Date.now() - startedAt,
+      ...context
+    });
+  });
   setSecurityHeaders(res, config.production);
   try {
     const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
@@ -348,6 +422,7 @@ server.listen(config.port, config.host, () => {
 
 function shutdown() {
   server.close(async () => {
+    localLogger.close();
     await store.close();
     process.exit(0);
   });

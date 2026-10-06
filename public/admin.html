@@ -30,6 +30,7 @@
           <a class="active" href="#overview">Overview</a>
           <a href="#employees">People</a>
           <a href="#roles">Access & roles</a>
+          <a href="#sign-in-activity">Sign-in activity</a>
           <a href="#audit">Audit log</a>
         </nav>
       </div>
@@ -76,6 +77,18 @@
           <p>Roles determine which Workplace services and role-specific work areas an employee can access.</p>
         </div>
         <div id="role-grid" class="role-grid"></div>
+      </section>
+
+      <section id="sign-in-activity" class="panel admin-table-panel sign-in-panel">
+        <div class="panel-heading table-heading">
+          <div><p class="eyebrow">AUTHENTICATION</p><h2>Recent sign-in activity</h2></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Time</th><th>Employee ID</th><th>Result</th><th>Client IP</th><th>Browser ID</th><th>Edge</th></tr></thead>
+            <tbody id="auth-event-table"></tbody>
+          </table>
+        </div>
       </section>
 
       <section id="audit" class="panel audit-panel">

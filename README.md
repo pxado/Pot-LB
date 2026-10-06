@@ -10,7 +10,7 @@ Fox Workplace is designed as an internal system rather than a public company web
 - Employee profile and role-based home.
 - Authenticated people directory.
 - Self-service areas for requests, attendance/leave, documents, and organization resources.
-- Role workspaces for management, operations, robotics, quality, and support.
+- Role work areas for management, operations, robotics, quality, and support.
 - Administrator console for employee creation, role assignment, activation/deactivation, and password reset.
 - Department-less organization-level administrator accounts.
 - PostgreSQL persistence for employee accounts, password hashes, sessions, and audit events.
@@ -83,3 +83,11 @@ public/   Workplace UI and Fox brand asset
 src/      HTTP server, PostgreSQL persistence, authentication, and RBAC
 test/     Node test suite
 ```
+
+## Authentication audit data
+
+Authentication events are recorded in PostgreSQL and written as line-oriented JSON to `runtime-logs/auth.log`. HTTP access records are written to `runtime-logs/access.log`. The records include the client IP supplied by the hosting edge, socket IP, browser identifier when available, user agent, request ID, edge location, result, and timestamp. Passwords and request bodies are not logged.
+
+The log files are suitable for collection by standard file-based logging agents such as rsyslog `imfile`.
+
+For isolated local testing, `AUTH_RATE_LIMIT_ENABLED=false` is accepted only when the application is bound to a loopback host and is not running in production mode. Non-loopback and production deployments enforce the server-side authentication rate policy.

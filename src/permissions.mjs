@@ -44,7 +44,7 @@ export const ROLE_DEFINITIONS = Object.freeze([
   {
     key: 'employee',
     label: 'Employee',
-    description: 'Standard employee self-service and organization workspace access.',
+    description: 'Standard employee self-service and organization workplace access.',
     permissions: ['portal.use'],
     modules: ['overview', 'people', 'requests', 'attendance', 'documents']
   }
