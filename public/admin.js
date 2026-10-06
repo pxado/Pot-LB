@@ -38,6 +38,16 @@
     }));
   }
 
+  function syncDepartmentField(form, fieldId) {
+    const role = form.elements.role.value;
+    const field = document.querySelector(fieldId);
+    const input = form.elements.department;
+    const administrator = role === 'administrator';
+    field.hidden = administrator;
+    input.required = !administrator;
+    if (administrator) input.value = '';
+  }
+
   function renderRoles() {
     const grid = document.querySelector('#role-grid');
     grid.replaceChildren(...roles.map((role) => {
@@ -55,15 +65,23 @@
   function renderEmployees(filter = '') {
     const body = document.querySelector('#employee-table');
     const needle = filter.trim().toLowerCase();
-    const visible = employees.filter((employee) => !needle || [employee.employeeId, employee.fullName, employee.department, employee.role].some((value) => String(value).toLowerCase().includes(needle)));
+    const visible = employees.filter((employee) => {
+      const values = [employee.employeeId, employee.fullName, employee.department, employee.role].filter(Boolean);
+      return !needle || values.some((value) => String(value).toLowerCase().includes(needle));
+    });
+
     body.replaceChildren(...visible.map((employee) => {
       const row = document.createElement('tr');
-      const values = [employee.employeeId, employee.fullName, employee.department, Fox.formatRole(employee.role)];
-      for (const value of values) {
+      const department = employee.role === 'administrator' ? '' : (employee.department ?? '');
+      const values = [employee.employeeId, employee.fullName, department, Fox.formatRole(employee.role)];
+
+      values.forEach((value, index) => {
         const cell = document.createElement('td');
         cell.textContent = value;
+        if (index === 2 && !value) cell.className = 'empty-cell';
         row.append(cell);
-      }
+      });
+
       const status = document.createElement('td');
       const pill = document.createElement('span');
       pill.className = `status-pill ${employee.active ? 'status-active' : 'status-inactive'}`;
@@ -92,10 +110,11 @@
     if (!events.length) {
       const empty = document.createElement('div');
       empty.className = 'empty-state';
-      empty.innerHTML = '<strong>No admin activity yet.</strong><span>Administrative changes will be recorded here.</span>';
+      empty.innerHTML = '<strong>No administrative activity yet.</strong><span>Account and access changes will be recorded here.</span>';
       list.replaceChildren(empty);
       return;
     }
+
     list.replaceChildren(...events.map((event) => {
       const item = document.createElement('article');
       item.className = 'audit-event';
@@ -120,6 +139,7 @@
       Fox.api('/api/admin/employees'),
       Fox.api('/api/admin/audit?limit=30')
     ]);
+
     employees = employeeResponse.employees;
     document.querySelector('#stat-employees').textContent = overview.totals.employees;
     document.querySelector('#stat-active').textContent = overview.totals.activeEmployees;
@@ -134,24 +154,30 @@
     editForm.elements.id.value = employee.id;
     editForm.elements.employeeId.value = employee.employeeId;
     editForm.elements.fullName.value = employee.fullName;
-    editForm.elements.department.value = employee.department;
     fillRoleSelect(editForm.elements.role, employee.role);
+    editForm.elements.department.value = employee.department ?? '';
     editForm.elements.active.checked = employee.active;
+    syncDepartmentField(editForm, '#edit-department-field');
     setMessage('#edit-message', '');
     editDialog.showModal();
   }
 
   const roleResponse = await Fox.api('/api/meta/roles');
   roles = roleResponse.roles;
-  fillRoleSelect(document.querySelector('#create-role'));
+  fillRoleSelect(document.querySelector('#create-role'), 'employee');
   fillRoleSelect(document.querySelector('#edit-role'));
   renderRoles();
   await refresh();
 
+  createForm.elements.role.addEventListener('change', () => syncDepartmentField(createForm, '#create-department-field'));
+  editForm.elements.role.addEventListener('change', () => syncDepartmentField(editForm, '#edit-department-field'));
+
   document.querySelector('#employee-search').addEventListener('input', (event) => renderEmployees(event.target.value));
+
   document.querySelector('#open-create').addEventListener('click', () => {
     createForm.reset();
-    fillRoleSelect(document.querySelector('#create-role'));
+    fillRoleSelect(document.querySelector('#create-role'), 'employee');
+    syncDepartmentField(createForm, '#create-department-field');
     setMessage('#create-message', '');
     createDialog.showModal();
   });
@@ -159,6 +185,7 @@
   createForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const data = new FormData(createForm);
+    const role = data.get('role');
     setMessage('#create-message', '');
     try {
       await Fox.api('/api/admin/employees', {
@@ -166,8 +193,8 @@
         body: JSON.stringify({
           employeeId: data.get('employeeId'),
           fullName: data.get('fullName'),
-          department: data.get('department'),
-          role: data.get('role'),
+          department: role === 'administrator' ? null : data.get('department'),
+          role,
           password: data.get('password')
         })
       });
@@ -181,6 +208,7 @@
   editForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const data = new FormData(editForm);
+    const role = data.get('role');
     setMessage('#edit-message', '');
     try {
       await Fox.api(`/api/admin/employees/${data.get('id')}`, {
@@ -188,8 +216,8 @@
         body: JSON.stringify({
           employeeId: data.get('employeeId'),
           fullName: data.get('fullName'),
-          department: data.get('department'),
-          role: data.get('role'),
+          department: role === 'administrator' ? null : data.get('department'),
+          role,
           active: editForm.elements.active.checked
         })
       });
