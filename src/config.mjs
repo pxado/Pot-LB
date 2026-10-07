@@ -27,7 +27,7 @@ export const config = Object.freeze({
   cookieName: 'fox_session',
   logDir: process.env.LOG_DIR?.trim() || './runtime-logs',
   authRateLimitEnabled: requestedRateLimitDisable && loopbackHost && !production ? false : true,
-  authRateLimitFailures: 20,
+  authRateLimitFailures: 50,
   authRateLimitWindowMs: 60_000,
   authRateLimitBlockMs: 60_000
 });
